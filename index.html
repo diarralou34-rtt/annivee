@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>🎉 Soirée 18 ans Isaline 🎉</title>
+
+<style>
+body {
+font-family: Arial;
+background: #0f0f0f;
+color: white;
+text-align: center;
+}
+button {
+padding: 12px;
+margin: 8px;
+border-radius: 10px;
+border: none;
+cursor: pointer;
+transition: transform 0.2s;
+}
+button:hover {
+transform: scale(1.1);
+}
+.section {
+margin: 40px;
+}
+.box {
+background: #1a1a1a;
+padding: 20px;
+border-radius: 15px;
+margin-top: 20px;
+}
+textarea {
+width: 80%;
+padding: 8px;
+margin-top: 10px;
+border-radius: 8px;
+border: none;
+}
+img {
+max-width: 200px;
+margin: 10px;
+border-radius: 10px;
+transition: transform 0.3s;
+cursor: pointer;
+}
+img:hover {
+transform: scale(1.1) rotate(5deg);
+}
+.messageBox {
+border: 1px solid #fff;
+padding: 5px;
+margin: 5px auto;
+border-radius: 5px;
+max-width: 80%;
+cursor: pointer;
+}
+.vote-count {
+font-size: 0.9em;
+margin-left: 5px;
+color: #ffd700;
+}
+</style>
+</head>
+<body>
+
+<h1>🔥 LA SOIRÉE LIVE 🔥</h1>
+
+<!-- PHOTOS DRÔLES -->
+<div class="section">
+<h2>📸 Photo la plus drôle</h2>
+<div class="box">
+<p>Temps restant : <span id="photoTimer">60</span> sec</p>
+<input type="file" id="photoInput" accept="image/*">
+<button onclick="submitPhoto()">Envoyer</button>
+<div id="photoGallery" style="margin-top:20px;"></div>
+</div>
+</div>
+
+<!-- MESSAGES DRÔLES -->
+<div class="section">
+<h2>💌 Messages drôles</h2>
+<div class="box">
+<p>Temps restant : <span id="messageTimer">60</span> sec</p>
+<textarea id="messageInput" placeholder="Écris ton message ici..."></textarea><br>
+<button onclick="submitMessage()">Envoyer</button>
+<div id="messageGallery" style="margin-top:20px;"></div>
+</div>
+</div>
+
+<!-- PODIUM FINAL -->
+<div class="section">
+<h2>🏆 Podium final</h2>
+<div class="box">
+<button onclick="showWinners()">Afficher le podium 🏅</button>
+<div id="winnerGallery" style="margin-top:20px;"></div>
+</div>
+</div>
+
+<script>
+// --- GLOBAL TIMER ---
+let totalTime = 60; // secondes pour photos/messages
+
+// --- PHOTOS ---
+let photoList = [];
+let photoTimer = setInterval(() => {
+if(totalTime > 0){
+totalTime--;
+document.getElementById("photoTimer").innerText = totalTime;
+document.getElementById("messageTimer").innerText = totalTime;
+} else {
+clearInterval(photoTimer);
+document.getElementById("photoTimer").innerText = "Temps écoulé ⏰";
+document.getElementById("messageTimer").innerText = "Temps écoulé ⏰";
+document.getElementById("photoInput").disabled = true;
+document.getElementById("messageInput").disabled = true;
+}
+}, 1000);
+
+function submitPhoto(){
+let fileInput = document.getElementById("photoInput");
+if(fileInput.files.length > 0 && totalTime > 0){
+let reader = new FileReader();
+reader.onload = function(e){
+let img = document.createElement("img");
+img.src = e.target.result;
+img.dataset.votes = 0;
+img.onclick = () => { img.dataset.votes++; updateVoteDisplay(img); };
+let voteSpan = document.createElement("span");
+voteSpan.className = "vote-count";
+voteSpan.innerText = img.dataset.votes;
+img.parentNode ? img.parentNode.appendChild(voteSpan) : img.appendChild(voteSpan);
+photoList.push(img);
+document.getElementById("photoGallery").appendChild(img);
+}
+reader.readAsDataURL(fileInput.files[0]);
+fileInput.value = "";
+}
+}
+
+function updateVoteDisplay(el){
+let span = el.querySelector(".vote-count");
+if(!span){
+span = document.createElement("span");
+span.className = "vote-count";
+el.appendChild(span);
+}
+span.innerText = el.dataset.votes;
+}
+
+// --- MESSAGES ---
+let messageList = [];
+
+function submitMessage(){
+let msgInput = document.getElementById("messageInput");
+if(msgInput.value.trim() !== "" && totalTime > 0){
+let p = document.createElement("p");
+p.innerText = msgInput.value;
+p.className = "messageBox";
+p.dataset.votes = 0;
+p.onclick = () => { p.dataset.votes++; updateVoteDisplay(p); };
+let voteSpan = document.createElement("span");
+voteSpan.className = "vote-count";
+voteSpan.innerText = p.dataset.votes;
+p.appendChild(voteSpan);
+messageList.push(p);
+document.getElementById("messageGallery").appendChild(p);
+msgInput.value = "";
+}
+}
+
+// --- PODIUM ---
+function showWinners(){
+let winnerDiv = document.getElementById("winnerGallery");
+winnerDiv.innerHTML = "<h3>📸 Photos les plus votées</h3>";
+let sortedPhotos = photoList.sort((a,b)=> b.dataset.votes - a.dataset.votes).slice(0,3);
+sortedPhotos.forEach((img,i)=>{
+let label = document.createElement("p");
+label.innerText = `#${i+1} avec ${img.dataset.votes} votes`;
+winnerDiv.appendChild(label);
+winnerDiv.appendChild(img.cloneNode());
+});
+
+winnerDiv.innerHTML += "<h3>💌 Messages les plus votés</h3>";
+let sortedMsgs = messageList.sort((a,b)=> b.dataset.votes - a.dataset.votes).slice(0,3);
+sortedMsgs.forEach((p,i)=>{
+let clone = p.cloneNode(true);
+let label = document.createElement("p");
+label.innerText = `#${i+1} avec ${clone.dataset.votes} votes`;
+winnerDiv.appendChild(label);
+winnerDiv.appendChild(clone);
+});
+}
+</script>
+
+</body>
+</html>
